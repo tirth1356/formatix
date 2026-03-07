@@ -24,9 +24,6 @@ The goal of FormatIX is to remove the pain of manual formatting and allow users 
 - 🧠 **AI-Powered Formatting**
   - Uses LLMs to understand document structure and apply appropriate formatting.
 
-- 🔧 **Custom Templates**
-  - Users can define their own formatting rules.
-
 - 🧹 **Style Cleanup**
   - Removes inconsistent styles, broken headings, and incorrect spacing.
 
