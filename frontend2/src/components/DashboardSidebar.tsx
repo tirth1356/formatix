@@ -74,14 +74,16 @@ export function DashboardSidebar() {
                       <NavLink
                         to={item.url}
                         end
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                          collapsed ? "justify-center" : ""
+                        } ${
                           isActive(item.url)
                             ? "bg-primary/10 text-primary shadow-sm"
                             : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                         }`}
                         activeClassName="bg-primary/10 text-primary"
                       >
-                        <item.icon className="h-[18px] w-[18px] shrink-0" />
+                        <item.icon className="h-4 w-4 shrink-0" />
                         {!collapsed && <span className="text-[13px] font-medium">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -128,7 +130,10 @@ export function DashboardSidebar() {
         <div className="p-4 border-t border-white/5 space-y-3 bg-background/20">
           {!collapsed && (
             <button
-              onClick={resetWorkflow}
+              onClick={() => {
+                resetWorkflow();
+                navigate("/dashboard/upload");
+              }}
               className="flex items-center justify-center gap-3 w-full h-12 rounded-2xl bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all duration-300 font-bold text-xs ring-1 ring-white/10 hover:ring-primary/40 shadow-sm overflow-hidden whitespace-nowrap"
             >
               <RotateCcw className="h-4 w-4" />

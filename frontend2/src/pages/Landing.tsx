@@ -2,6 +2,9 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Upload, Zap, Shield, FileText, ArrowRight, Brain, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useWorkflow } from "@/contexts/WorkflowContext";
+import Squares from "@/components/Squares";
 
 const features = [
   { icon: Brain, title: "6 AI Agents", desc: "Parser, Structure, Rules, Formatting, Citation, Validation" },
@@ -11,9 +14,6 @@ const features = [
 ];
 
 const formats = ["APA 7th", "MLA 9th", "Chicago 17th", "IEEE", "Vancouver", "Custom"];
-
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useWorkflow } from "@/contexts/WorkflowContext";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -29,28 +29,35 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden bg-grid-pattern">
-      {/* Ambient light */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/20 rounded-full blur-[150px] opacity-20" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[300px] bg-accent/20 rounded-full blur-[120px] opacity-10" />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated Squares Background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <Squares direction="diagonal" speed={0.5} borderColor="#333" squareSize={40} hoverFillColor="#0d0d0d" />
       </div>
 
-      {/* Nav */}
-      <nav className="relative z-20 flex items-center justify-between px-8 py-5 border-b border-white/5 bg-background/40 backdrop-blur-md sticky top-0">
-        <div className="flex items-center gap-2.5">
-          <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-lg">
-            <Zap className="h-5 w-5 text-primary" />
+      {/* Content Wrapper */}
+      <div className="relative z-10">
+        {/* Ambient light */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/20 rounded-full blur-[150px] opacity-20" />
+          <div className="absolute bottom-0 right-0 w-[600px] h-[300px] bg-accent/20 rounded-full blur-[120px] opacity-10" />
+        </div>
+
+        {/* Nav */}
+        <nav className="relative z-20 flex items-center justify-between px-8 py-5 border-b border-white/5 backdrop-blur-md sticky top-0">
+          <div className="flex items-center gap-2.5">
+            <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-lg">
+              <Zap className="h-5 w-5 text-primary" />
+            </div>
+            <span className="font-bold text-xl text-foreground tracking-tighter">FormatIX</span>
           </div>
-          <span className="font-bold text-xl text-foreground tracking-tighter">FormatIX</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl px-6 h-10 font-bold shadow-xl transition-all hover:scale-[1.05]" onClick={handleGetStarted}>
-            Get Started
-          </Button>
-        </div>
-      </nav>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl px-6 h-10 font-bold shadow-xl transition-all hover:scale-[1.05]" onClick={handleGetStarted}>
+              Get Started
+            </Button>
+          </div>
+        </nav>
 
       {/* Hero */}
       <section className="relative z-10 flex flex-col items-center justify-center pt-28 pb-20 px-4">
@@ -160,6 +167,7 @@ const Landing = () => {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 };

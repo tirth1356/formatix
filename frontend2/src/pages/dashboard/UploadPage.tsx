@@ -49,7 +49,7 @@ const templateOptions = [
     )
   },
   {
-    title: "Nature Journal",
+    title: "Vancouver Style",
     description: ["Superscript citations", "Strict word limits", "Methods at end"],
     previewContent: (
       <div className="space-y-4 font-serif text-sm">

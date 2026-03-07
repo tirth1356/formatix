@@ -42,9 +42,7 @@ const AuthPage = () => {
       >
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="h-11 w-11 rounded-xl bg-primary/15 flex items-center justify-center">
-            <Zap className="h-6 w-6 text-primary" />
-          </div>
+          <img src="./favicon.ico" alt="FormatIX Logo" className="h-11 w-11 rounded-xl" />
           <div>
             <h1 className="text-xl font-bold text-foreground tracking-tight">FormatIX</h1>
             <p className="text-[11px] text-muted-foreground">Next Gen Document Formatter</p>
