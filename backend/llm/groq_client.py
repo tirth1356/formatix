@@ -8,7 +8,7 @@ from groq import AsyncGroq
 
 
 class GroqClient:
-    def __init__(self, api_key: str, model: str = "llama-3.3-70b-versatile"):
+    def __init__(self, api_key: str, model: str = "llama-3.1-8b-instant"):
         self.client = AsyncGroq(api_key=api_key) if api_key else None
         self.model = model
 
@@ -16,6 +16,7 @@ class GroqClient:
         self,
         prompt: str,
         system: Optional[str] = None,
+        model: Optional[str] = None,
         temperature: float = 0.3,
     ) -> str:
         """Send chat completion request to Groq. Returns assistant message content."""
@@ -27,7 +28,7 @@ class GroqClient:
         messages.append({"role": "user", "content": prompt})
 
         kwargs = {
-            "model": self.model,
+            "model": model or self.model,
             "messages": messages,
             "temperature": temperature,
         }

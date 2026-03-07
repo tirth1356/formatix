@@ -49,7 +49,7 @@ APA 7th Edition:
 {{"style":"APA","font":"Times New Roman","font_size":12,"line_spacing":"double","margins":"1 inch","columns":1,"paragraph_indent":"0.5 inch","heading_rules":{{"level1":"center bold","level2":"left bold","level3":"left bold italic"}},"citation_style":"author-year","reference_format":"APA7","running_head":false,"title_page":true,"abstract_required":true,"abstract_word_limit":250,"reference_section_title":"References","doi_required":true,"url_format":"https://doi.org/..."}}
 
 MLA 9th Edition:
-{{"style":"MLA","font":"Times New Roman","font_size":12,"line_spacing":"double","margins":"1 inch","columns":1,"paragraph_indent":"0.5 inch","heading_rules":{{"level1":"left bold","level2":"left italic","level3":"left bold italic"}},"citation_style":"author-page","reference_format":"MLA9","running_head":false,"title_page":false,"abstract_required":false,"abstract_word_limit":null,"reference_section_title":"Works Cited","doi_required":false,"url_format":"Accessed Day Month Year"}}
+{{"style":"MLA","font":"Times New Roman","font_size":12,"line_spacing":"double","margins":"1 inch","columns":1,"paragraph_indent":"0.5 inch","heading_rules":{{"level1":"center","level2":"left bold","level3":"left bold italic"}},"citation_style":"author-page","reference_format":"MLA9","running_head":false,"title_page":false,"abstract_required":false,"abstract_word_limit":null,"reference_section_title":"Works Cited","doi_required":false,"url_format":"URL"}}
 
 Chicago 17th Edition (Author-Date):
 {{"style":"Chicago","font":"Times New Roman","font_size":12,"line_spacing":"double","margins":"1 inch","columns":1,"paragraph_indent":"0.5 inch","heading_rules":{{"level1":"center bold","level2":"left bold","level3":"left bold italic"}},"citation_style":"author-date","reference_format":"Chicago17","running_head":false,"title_page":true,"abstract_required":false,"abstract_word_limit":null,"reference_section_title":"Bibliography","doi_required":true,"url_format":"https://doi.org/..."}}
@@ -97,8 +97,8 @@ STYLE_DEFAULTS = {
         "columns": 1,
         "paragraph_indent": "0.5 inch",
         "heading_rules": {
-            "level1": "left bold",
-            "level2": "left italic",
+            "level1": "center",
+            "level2": "left bold",
             "level3": "left bold italic",
         },
         "citation_style": "author-page",
@@ -109,7 +109,7 @@ STYLE_DEFAULTS = {
         "abstract_word_limit": None,
         "reference_section_title": "Works Cited",
         "doi_required": False,
-        "url_format": "Accessed Day Month Year",
+        "url_format": "URL",
     },
     "Chicago": {
         "style": "Chicago",

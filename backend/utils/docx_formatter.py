@@ -325,7 +325,7 @@ class DocxFormatter:
             sec.right_margin  = self.margin_right
 
         if self.style_lower in ("apa", "apa7"):
-            self._build_apa(doc, title, authors, abstract, sections, references, keywords)
+            self._build_apa(doc, title, authors, abstract, sections, references, keywords, affiliation, course_info)
         elif self.style_lower == "ieee":
             self._build_ieee(doc, title, authors, abstract, sections, references, keywords, affiliation)
         elif self.style_lower == "mla":
@@ -344,9 +344,9 @@ class DocxFormatter:
     # APA 7th Edition
     # ------------------------------------------------------------------ #
 
-    def _build_apa(self, doc, title, authors, abstract, sections, references, keywords):
+    def _build_apa(self, doc, title, authors, abstract, sections, references, keywords, affiliation=None, course_info=None):
         self._apa_header(doc.sections[0], title)
-        self._apa_title_page(doc, title, authors)
+        self._apa_title_page(doc, title, authors, affiliation, course_info)
         if abstract:
             self._apa_abstract(doc, abstract, keywords)
         self._build_sections(doc, sections)
@@ -375,8 +375,8 @@ class DocxFormatter:
         tabs.append(tab)
         pPr.append(tabs)
 
-    def _apa_title_page(self, doc, title, authors):
-        for _ in range(10):
+    def _apa_title_page(self, doc, title, authors, affiliation=None, course_info=None):
+        for _ in range(3):
             p = doc.add_paragraph()
             _set_line_spacing_xml(p, self.line_spacing_str)
         p = doc.add_paragraph()
@@ -388,13 +388,28 @@ class DocxFormatter:
         _set_line_spacing_xml(p, self.line_spacing_str)
         b = doc.add_paragraph()
         _set_line_spacing_xml(b, self.line_spacing_str)
+        
+        ci = course_info or {}
+        lines = []
         if authors:
-            p2 = doc.add_paragraph()
-            p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            run2 = p2.add_run(", ".join(authors))
-            run2.font.name = self.font_name
-            run2.font.size = self.font_size
-            _set_line_spacing_xml(p2, self.line_spacing_str)
+            lines.append(", ".join(authors))
+        if affiliation:
+            lines.append(affiliation)
+        if ci.get("course"):
+            lines.append(ci.get("course"))
+        if ci.get("instructor"):
+            lines.append(ci.get("instructor"))
+        if ci.get("date"):
+            lines.append(ci.get("date"))
+            
+        for line in lines:
+            if line.strip():
+                p2 = doc.add_paragraph()
+                p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                run2 = p2.add_run(line.strip())
+                run2.font.name = self.font_name
+                run2.font.size = self.font_size
+                _set_line_spacing_xml(p2, self.line_spacing_str)
         doc.add_page_break()
 
     def _apa_abstract(self, doc, abstract, keywords):
@@ -817,7 +832,34 @@ class DocxFormatter:
         _set_line_spacing_xml(t, "double")
         t.paragraph_format.space_before = Pt(0)
         t.paragraph_format.space_after  = Pt(0)
-        self._build_sections(doc, sections)
+        # Look for Notes section for MLA (Endnotes)
+        notes_section = None
+        other_sections = []
+        for s in sections:
+            if _norm(s.get("heading", "")) == "notes":
+                notes_section = s
+            else:
+                other_sections.append(s)
+
+        self._build_sections(doc, other_sections)
+        
+        if notes_section:
+            doc.add_page_break()
+            h = doc.add_paragraph()
+            h.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            run = h.add_run("Notes")
+            run.font.name = self.font_name
+            run.font.size = self.font_size
+            _set_line_spacing_xml(h, "double")
+            
+            content = notes_section.get("content", "").strip()
+            if content:
+                paras = re.split(r'\n{2,}', content)
+                for para_text in paras:
+                    full = " ".join(line.strip() for line in para_text.splitlines() if line.strip())
+                    if full:
+                        self._add_body_paragraph(doc, full)
+
         if references:
             self._build_references_page(doc, references)
 
@@ -1086,9 +1128,9 @@ class DocxFormatter:
     def _add_body_paragraph(self, doc: Document, text: str):
         p = doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-        run = p.add_run(text)
-        run.font.name = self.font_name
-        run.font.size = self.font_size
+        
+        self._add_formatted_text(p, text)
+        
         _set_line_spacing_xml(p, self.line_spacing_str)
         p.paragraph_format.space_before = Pt(0)
         p.paragraph_format.space_after  = Pt(0)
@@ -1111,8 +1153,26 @@ class DocxFormatter:
         p.paragraph_format.space_before = Pt(0)
         p.paragraph_format.space_after  = Pt(6)
 
+    def _add_formatted_text(self, paragraph, text):
+        """Parse _italic_ markers and add runs to the paragraph."""
+        parts = re.split(r'(_[^_]+_)', text)
+        for part in parts:
+            if part.startswith('_') and part.endswith('_'):
+                run = paragraph.add_run(part[1:-1])
+                run.italic = True
+            else:
+                run = paragraph.add_run(part)
+            run.font.name = self.font_name
+            run.font.size = self.font_size
+
     def _build_references_page(self, doc: Document, references: list):
         style_lower = self.style_lower
+
+        # 1. Sort references based on citation style
+        if style_lower in ("ieee", "vancouver"):
+            sorted_refs = references
+        else:
+            sorted_refs = sorted(references)
 
         if style_lower != "ieee":
             doc.add_page_break()
@@ -1122,13 +1182,18 @@ class DocxFormatter:
             gap.paragraph_format.space_before = Pt(8)
 
         h = doc.add_paragraph()
-        if style_lower in ("apa", "apa7"):
+        if style_lower in ("apa", "apa7", "mla"):
             h.alignment = WD_ALIGN_PARAGRAPH.CENTER
         else:
             h.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
         run = h.add_run(self.ref_section_title)
-        run.bold = True
+        
+        if style_lower == "mla":
+            run.bold = False
+        else:
+            run.bold = True
+            
         run.font.name = self.font_name
         run.font.size = self.font_size
 
@@ -1143,13 +1208,9 @@ class DocxFormatter:
         else:
             _set_line_spacing_xml(h, self.line_spacing_str)
             h.paragraph_format.space_before = Pt(0)
-            h.paragraph_format.space_after  = Pt(0)
+            h.paragraph_format.space_after  = Pt(12) # Gap before first reference
 
-        refs = list(references)
-        if style_lower in ("apa", "apa7", "mla"):
-            refs = sorted(refs, key=lambda r: r.strip().lower())
-
-        for i, ref in enumerate(refs):
+        for i, ref in enumerate(sorted_refs):
             ref_text = ref.strip()
             if not ref_text:
                 continue
@@ -1159,23 +1220,24 @@ class DocxFormatter:
 
             if style_lower in ("ieee", "vancouver"):
                 ref_text = re.sub(r'^[\[\d\]\.\s]+', '', ref_text).strip()
-                display  = f"[{i + 1}] {ref_text}" if style_lower == "ieee" else f"{i + 1}. {ref_text}"
-                run = p.add_run(display)
-                run.font.name = self.font_name
-                run.font.size = self.font_size if style_lower == "vancouver" else Pt(8)
+                display  = f"[{i + 1}] " if style_lower == "ieee" else f"{i + 1}. "
+                prefix_run = p.add_run(display)
+                prefix_run.font.name = self.font_name
+                prefix_run.font.size = self.font_size if style_lower == "vancouver" else Pt(8)
+                
+                self._add_formatted_text(p, ref_text)
+                
                 _set_line_spacing_xml(p, "single" if style_lower == "ieee" else self.line_spacing_str)
                 p.paragraph_format.first_line_indent = Inches(0)
                 p.paragraph_format.left_indent = Inches(0)
-                p.paragraph_format.space_after = Pt(2) if style_lower == "ieee" else Pt(4)
+                p.paragraph_format.space_after = Pt(2) if style_lower == "ieee" else Pt(6)
             else:
-                run = p.add_run(ref_text)
-                run.font.name = self.font_name
-                run.font.size = self.font_size
-                _set_line_spacing_xml(p, self.line_spacing_str)
+                self._add_formatted_text(p, ref_text)
+                _set_line_spacing_xml(p, "double")
                 p.paragraph_format.left_indent        = Inches(0.5)
                 p.paragraph_format.first_line_indent  = Inches(-0.5)
                 p.paragraph_format.space_before = Pt(0)
-                p.paragraph_format.space_after  = Pt(0)
+                p.paragraph_format.space_after  = Pt(6) # Spacing between references
 
 
 # ---------------------------------------------------------------------------
