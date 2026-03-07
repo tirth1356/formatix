@@ -1,163 +1,123 @@
-# 🚀 FormatIX
+# 🚀 FormatIX: The Professional AI Manuscript Engine
 
-**FormatIX** is an AI-powered document formatting tool that converts messy or unstructured text into properly formatted academic and professional documents.
-
-It helps automatically format documents according to common research and publication standards such as **APA, IEEE, MLA, Vancouver**, or **custom user-defined templates**.
-
-The goal of FormatIX is to remove the pain of manual formatting and allow users to focus on writing content while the system handles the formatting.
+**FormatIX** is an AI-powered document formatting system that automatically converts raw, unstructured manuscripts into properly formatted academic documents according to standard journal and conference guidelines.
 
 ---
 
-# ✨ Features
+## 📖 Introduction
 
-- 📄 **Automatic Document Formatting**
-  - Converts raw or poorly formatted text into structured documents.
+Academic researchers often face significant difficulties when preparing manuscripts for submission. Each publisher requires strict formatting rules, including citation styles, reference formats, document structure, and layout requirements. Even small formatting mistakes can lead to manuscript rejection or additional revision cycles.
 
-- 📚 **Multiple Citation Styles**
-  - Supports:
-  - IEEE (2-column research paper format)
-  - APA
-  - MLA
-  - Vancouver
-  - Custom template
+Most researchers write their drafts using plain text, word processors, or LaTeX, but converting these drafts into the required journal format is time-consuming and error-prone. **FormatIX** removes this pain, allowing authors to focus on their content while the system handles the formatting.
 
-- 🧠 **AI-Powered Formatting**
-  - Uses LLMs to understand document structure and apply appropriate formatting.
+## 🛠️ Problem Statement
 
-- 🧹 **Style Cleanup**
-  - Removes inconsistent styles, broken headings, and incorrect spacing.
+Researchers currently face several major challenges during manuscript preparation:
 
-- ⚡ **Fast Processing**
-  - Uses API-based models for quick document transformation.
+1.  **Manual Formatting Effort**: Significant time is spent adjusting margins, headings, and spacing.
+2.  **Multiple Citation Styles**: Journals require varying styles (APA, IEEE, MLA, etc.), making it difficult to maintain consistency.
+3.  **Reference Formatting Errors**: Incorrect author formatting, DOI placement, and punctuation are common mistakes that delay submission.
+4.  **Time-Consuming Revisions**: When a journal requires a different style, authors often have to manually reformat the entire document from scratch.
+
+## 💡 Proposed Solution
+
+The **FormatIX** system uses a multi-agent AI architecture to analyze uploaded manuscripts, extract their structure, and apply precise formatting rules. It removes previous inconsistent formatting and rebuilds the document using standardized guidelines, ensuring a clean, publication-ready output.
 
 ---
 
-# 🏗️ Project Structure
+## ✨ Key Features
 
+- **🧠 Multi-Agent Architecture**: Specialized AI agents for parsing, structure detection, and rule extraction.
+-  **🛡️ Privacy-First**: Optional **Ollama (Local AI)** support ensures sensitive data never leaves your machine.
+-  **⚡ High-Speed Cloud**: Real-time transformation using **Groq (Llama 3.1 8B)**.
+-  **🧪 Citation Validation**: Cross-validates in-text citations against the reference list.
+-  **📜 Professional Output**: Generates both **DOCX** and **LaTeX** source files.
+
+---
+
+## 📚 Supported Citation Styles
+
+### **IEEE (Two-Column Format)**
+Commonly used in engineering and computer science.
+- **Layout**: Two-column document layout.
+- **Citations**: Numbered in square brackets (e.g., `[1]`).
+- **Ordering**: Ordered by appearance in text.
+- **Reference Example**: `[1] J. A. Smith and R. T. Lee, "Machine learning for document analysis," *AI Research*, vol. 65, no. 2, 2022.`
+
+### **APA (7th Edition)**
+Widely used in psychology, education, and social sciences.
+- **Style**: Author-date (e.g., `(Smith & Lee, 2022)`).
+- **Layout**: Double-spaced with hanging indents for references.
+- **Reference Example**: `Smith, J. A., & Lee, R. T. (2022). Machine learning for document analysis. *AI Research*, 65(2), 123–145.`
+
+### **MLA (9th Edition)**
+The standard for humanities and literature.
+- **Style**: Author-page (e.g., `(Smith 123)`).
+- **Layout**: "Works Cited" section, double-spaced.
+- **Reference Example**: `Smith, John A., and Robert T. Lee. "Machine Learning for Document Analysis." *AI Research*, vol. 65, no. 2, 2022, pp. 123–145.`
+
+### **Vancouver Style**
+Widely used in medical and scientific journals.
+- **Style**: Numeric citations.
+- **Reference Example**: `Smith JA, Lee RT. Machine learning for document analysis. AI Research. 2022;65(2):123-145.`
+
+### **Chicago Manual of Style (Author–Date)**
+Commonly used in physical, natural, and social sciences.
+- **Reference Example**: `Smith, John A., and Robert T. Lee. 2022. "Machine Learning for Document Analysis." AI Research 65 (2): 123–145.`
+
+---
+
+## 🏗️ Project Structure
+
+```text
+FormatIX/
+├── frontend2/             # Vite + React + Tailwind + Shadcn UI
+│   ├── src/
+│   │   ├── agents/        # UI for individual agent status
+│   │   └── components/    # Reusable shadcn widgets
+├── backend/               # FastAPI + AI Agent Logic
+│   ├── agents/            # Parser, Structure, Rule, Format, Citation, Validation
+│   ├── llm/               # Ollama + Groq inference clients
+│   ├── utils/             # python-docx and document processing utilities
+│   ├── main.py            # API entry point
 ```
-FormatIX
-│
-├── backend/              # API server and formatting logic
-├── agents/               # AI agents responsible for formatting tasks
-├── templates/            # Formatting templates (IEEE, APA, etc.)
-├── utils/                # Helper functions
-├── main.py               # Entry point of the application
-├── requirements.txt      # Python dependencies
-└── README.md
-```
 
 ---
 
-# ⚙️ Tech Stack
+## 🧪 System Workflow
 
-- **Python**
-- **FastAPI**
-- **Groq API / LLM models**
-- **Document parsing libraries**
-- **Custom formatting rule engine**
-
----
-
-# 🧠 How It Works
-
-1. User uploads or pastes a document.
-2. FormatIX analyzes the structure.
-3. AI identifies headings, references, and sections.
-4. Selected template rules are applied.
-5. The system generates a **clean, formatted document**.
+1.  **Manuscript Upload**: Accepts `.docx`, `.pdf`, or `.txt`.
+2.  **Parsing & Structure Detection**: Extracts key sections (Title, Abstract, Headings) and removes inconsistent existing styles.
+3.  **Rule Extraction**: AI identifies the exact font, spacing, and citation requirements for the selected style.
+4.  **Formatting & Corrections**: The system generates a list of suggested structural corrections for user review.
+5.  **Document Generation**: Rebuilds the document from scratch as a natively formatted **DOCX** and **LaTeX** file.
 
 ---
 
-# 🚀 Installation
+## 🎯 Impact
 
-Clone the repository:
+By automating manuscript formatting, FormatIX significantly reduces the time researchers spend on tedious formatting tasks, allowing them to focus on the research content itself. It ensures compliance with academic standards and makes the submission process faster, more reliable, and less stressful.
 
+---
+
+## 🚀 Installation & Setup
+
+### Backend
 ```bash
-git clone https://github.com/tirth1356/deepseek_derek_2.git
-cd deepseek_derek_2
-```
-
-Install dependencies:
-
-```bash
+cd backend
 pip install -r requirements.txt
-```
-
-Run the application:
-
-```bash
+cp .env.example .env      # Set your GROQ_API_KEY
 python main.py
 ```
 
----
-
-# 🔑 Environment Variables
-
-Create a `.env` file and add:
-
-```
-GROQ_API_KEY=your_api_key
-GROQ_MODEL=llama3-8b-8192
+### Frontend
+```bash
+cd frontend2
+npm install
+npm run dev
 ```
 
 ---
 
-# 📌 Example Use Case
-
-Input (messy AI output):
-
-```
-title Artificial intelligence
-introduction
-Artificial intelligence is growing fast
-references
-1 some paper
-```
-
-Output (IEEE formatted):
-
-```
-Title: Artificial Intelligence
-
-I. Introduction
-Artificial intelligence is growing fast...
-
-References
-[1] Author, Paper Title, Year
-```
-
----
-
-# 📈 Future Improvements
-- 📑 PDF and DOCX export
-- 🧩 Plugin support for editors
-- 🌐 Web UI for document upload
-- 📊 Automatic reference detection
-- 🧾 Citation extraction
----
-
-# 🤝 Contributing
-
-Contributions are welcome!
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Submit a Pull Request
-
----
-
-# ⭐ Support
-
-If you find this project useful:
-- ⭐ Star the repository
-- 🍴 Fork it
-- 🛠️ Contribute
-
----
-
-# 👨‍💻 Author
-
-**Tirth Patel**
-
-GitHub:  
-https://github.com/tirth1356
+## 👨‍💻 Author
+**Tirth Patel** ([GitHub Profile](https://github.com/tirth1356))
