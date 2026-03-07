@@ -1,0 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode (Reversed: Dark Background) */
+    --background: 323 27% 12%; /* Darker version of #331D2C */
+    --foreground: 33 44% 88%; /* #EFE1D1 */
+
+    --card: 323 20% 16%; /* #331D2C */
+    --card-foreground: 33 44% 88%;
+
+    --popover: 323 20% 16%;
+    --popover-foreground: 33 44% 88%;
+
+    --primary: 33 44% 88%; /* #EFE1D1 */
+    --primary-foreground: 323 27% 16%;
+
+    --secondary: 329 18% 58%; /* #A78295 */
+    --secondary-foreground: 33 44% 88%;
+
+    --accent: 305 15% 21%; /* #3F2E3E */
+    --accent-foreground: 33 44% 95%;
+
+    --muted: 323 20% 25%;
+    --muted-foreground: 33 20% 70%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 323 20% 25%;
+    --input: 323 20% 25%;
+    --ring: 33 44% 88%;
+
+    --radius: 1rem; /* rounded-2xl */
+
+    --neon-green: 33 44% 88%; /* Primary in Light Mode */
+    --neon-blue: 329 18% 58%; /* Secondary in Light Mode */
+    --neon-orange: 305 15% 21%; /* Accent in Light Mode */
+    
+    --glass: 323 20% 18% / 0.7;
+    --glass-border: 33 44% 88% / 0.15;
+  }
+
+  .dark {
+    /* Dark Mode (Reversed: Light Background) */
+    --background: 33 44% 88%; /* #EFE1D1 */
+    --foreground: 323 27% 16%; /* #331D2C */
+
+    --card: 33 30% 92%;
+    --card-foreground: 323 27% 16%;
+
+    --popover: 33 30% 92%;
+    --popover-foreground: 323 27% 16%;
+
+    --primary: 323 27% 16%; /* #331D2C */
+    --primary-foreground: 33 44% 88%;
+
+    --secondary: 305 15% 21%; /* #3F2E3E */
+    --secondary-foreground: 33 44% 95%;
+
+    --accent: 329 18% 58%; /* #A78295 */
+    --accent-foreground: 323 27% 16%;
+
+    --muted: 33 20% 82%;
+    --muted-foreground: 323 20% 40%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 33 20% 80%;
+    --input: 33 20% 80%;
+    --ring: 323 27% 16%;
+
+    --neon-green: 323 27% 16%; /* Primary in Dark Mode */
+    --neon-blue: 305 15% 21%; /* Secondary in Dark Mode */
+    --neon-orange: 329 18% 58%; /* Accent in Dark Mode */
+
+    --glass: 33 44% 95% / 0.7;
+    --glass-border: 323 27% 16% / 0.15;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  code, pre {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-card/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl;
+  }
+
+  .glass-panel-strong {
+    @apply bg-card/80 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl;
+  }
+
+  .neon-glow-green {
+    box-shadow: 0 8px 32px -8px hsl(var(--neon-green) / 0.3);
+  }
+
+  .neon-glow-blue {
+    box-shadow: 0 8px 32px -8px hsl(var(--neon-blue) / 0.3);
+  }
+
+  .neon-glow-orange {
+    box-shadow: 0 8px 32px -8px hsl(var(--neon-orange) / 0.3);
+  }
+
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent bg-gradient-to-r;
+    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--secondary)));
+  }
+
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
