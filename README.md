@@ -4,164 +4,120 @@
 
 ---
 
-## Features
+## 📖 Introduction
 
-- **Privacy-first**: Default **Private Mode** runs everything locally with Ollama (Phi3 + Llama3). Your manuscript never leaves your machine.
-- **Cloud optional**: Switch to **Cloud Mode** (Groq, Llama3-70B) when you want faster formatting.
-- **Modular agents**: Parser → Structure → Rule Extraction → Formatting → Citation Engine → Validation.
-- **Explainable**: Every formatting change is listed with a reason in the Corrections panel.
-- **Supported styles**: APA, MLA, Chicago, IEEE, Vancouver, and custom templates.
+Academic researchers often face significant difficulties when preparing manuscripts for submission. Each publisher requires strict formatting rules, including citation styles, reference formats, document structure, and layout requirements. Even small formatting mistakes can lead to manuscript rejection or additional revision cycles.
 
----
+Most researchers write their drafts using plain text, word processors, or LaTeX, but converting these drafts into the required journal format is time-consuming and error-prone. **FormatIX** removes this pain, allowing authors to focus on their content while the system handles the formatting.
 
-## Project structure
+## 🛠️ Problem Statement
 
-```
-citeagent/
-├── frontend/          # Next.js + Tailwind + Shadcn UI + Framer Motion
-│   ├── app/
-│   ├── components/
-│   └── lib/
-├── backend/
-│   ├── agents/        # Parser, Structure, Rule, Format, Citation, Validation
-│   ├── llm/           # Ollama + Groq clients
-│   ├── utils/         # DOCX/PDF/TXT parsing and formatting
-│   ├── main.py
-│   └── requirements.txt
-└── README.md
-```
+Researchers currently face several major challenges during manuscript preparation:
+
+1.  **Manual Formatting Effort**: Significant time is spent adjusting margins, headings, and spacing.
+2.  **Multiple Citation Styles**: Journals require varying styles (APA, IEEE, MLA, etc.), making it difficult to maintain consistency.
+3.  **Reference Formatting Errors**: Incorrect author formatting, DOI placement, and punctuation are common mistakes that delay submission.
+4.  **Time-Consuming Revisions**: When a journal requires a different style, authors often have to manually reformat the entire document from scratch.
+
+## 💡 Proposed Solution
+
+The **FormatIX** system uses a multi-agent AI architecture to analyze uploaded manuscripts, extract their structure, and apply precise formatting rules. It removes previous inconsistent formatting and rebuilds the document using standardized guidelines, ensuring a clean, publication-ready output.
 
 ---
 
-## Backend setup
+## ✨ Key Features
 
-**Python**: 3.10 or 3.11 recommended (3.13 may require prebuilt wheels for some deps).
+- **🧠 Multi-Agent Architecture**: Specialized AI agents for parsing, structure detection, and rule extraction.
+-  **🛡️ Privacy-First**: Optional **Ollama (Local AI)** support ensures sensitive data never leaves your machine.
+-  **⚡ High-Speed Cloud**: Real-time transformation using **Groq (Llama 3.1 8B)**.
+-  **🧪 Citation Validation**: Cross-validates in-text citations against the reference list.
+-  **📜 Professional Output**: Generates both **DOCX** and **LaTeX** source files.
 
-### 1. Install dependencies
+---
 
+## 📚 Supported Citation Styles
+
+### **IEEE (Two-Column Format)**
+Commonly used in engineering and computer science.
+- **Layout**: Two-column document layout.
+- **Citations**: Numbered in square brackets (e.g., `[1]`).
+- **Ordering**: Ordered by appearance in text.
+- **Reference Example**: `[1] J. A. Smith and R. T. Lee, "Machine learning for document analysis," *AI Research*, vol. 65, no. 2, 2022.`
+
+### **APA (7th Edition)**
+Widely used in psychology, education, and social sciences.
+- **Style**: Author-date (e.g., `(Smith & Lee, 2022)`).
+- **Layout**: Double-spaced with hanging indents for references.
+- **Reference Example**: `Smith, J. A., & Lee, R. T. (2022). Machine learning for document analysis. *AI Research*, 65(2), 123–145.`
+
+### **MLA (9th Edition)**
+The standard for humanities and literature.
+- **Style**: Author-page (e.g., `(Smith 123)`).
+- **Layout**: "Works Cited" section, double-spaced.
+- **Reference Example**: `Smith, John A., and Robert T. Lee. "Machine Learning for Document Analysis." *AI Research*, vol. 65, no. 2, 2022, pp. 123–145.`
+
+### **Vancouver Style**
+Widely used in medical and scientific journals.
+- **Style**: Numeric citations.
+- **Reference Example**: `Smith JA, Lee RT. Machine learning for document analysis. AI Research. 2022;65(2):123-145.`
+
+### **Chicago Manual of Style (Author–Date)**
+Commonly used in physical, natural, and social sciences.
+- **Reference Example**: `Smith, John A., and Robert T. Lee. 2022. "Machine Learning for Document Analysis." AI Research 65 (2): 123–145.`
+
+---
+
+## 🏗️ Project Structure
+
+```text
+FormatIX/
+├── frontend2/             # Vite + React + Tailwind + Shadcn UI
+│   ├── src/
+│   │   ├── agents/        # UI for individual agent status
+│   │   └── components/    # Reusable shadcn widgets
+├── backend/               # FastAPI + AI Agent Logic
+│   ├── agents/            # Parser, Structure, Rule, Format, Citation, Validation
+│   ├── llm/               # Ollama + Groq inference clients
+│   ├── utils/             # python-docx and document processing utilities
+│   ├── main.py            # API entry point
+```
+
+---
+
+## 🧪 System Workflow
+
+1.  **Manuscript Upload**: Accepts `.docx`, `.pdf`, or `.txt`.
+2.  **Parsing & Structure Detection**: Extracts key sections (Title, Abstract, Headings) and removes inconsistent existing styles.
+3.  **Rule Extraction**: AI identifies the exact font, spacing, and citation requirements for the selected style.
+4.  **Formatting & Corrections**: The system generates a list of suggested structural corrections for user review.
+5.  **Document Generation**: Rebuilds the document from scratch as a natively formatted **DOCX** and **LaTeX** file.
+
+---
+
+## 🎯 Impact
+
+By automating manuscript formatting, FormatIX significantly reduces the time researchers spend on tedious formatting tasks, allowing them to focus on the research content itself. It ensures compliance with academic standards and makes the submission process faster, more reliable, and less stressful.
+
+---
+
+## 🚀 Installation & Setup
+
+### Backend
 ```bash
 cd backend
 pip install -r requirements.txt
+cp .env.example .env      # Set your GROQ_API_KEY
+python main.py
 ```
 
-Optional: `pip install pymupdf` for PDF fallback parsing (needs build tools on Windows).
-
-### 2. Environment
-
-Copy the example env and edit as needed:
-
+### Frontend
 ```bash
-cp .env.example .env
-```
-
-Variables:
-
-- `AI_MODE=local`
-- `OLLAMA_BASE_URL=http://localhost:11434`
-- `OLLAMA_MODEL_FAST=phi3`
-- `OLLAMA_MODEL_REASONING=llama3`
-- `GROQ_API_KEY=your_key_here` (optional, for Cloud Mode)
-- `GROQ_MODEL=llama3-70b-8192`
-- `SERVER_PORT=8000`
-
-### 3. Start Ollama (for Private Mode)
-
-Install [Ollama](https://ollama.ai), then:
-
-```bash
-ollama pull phi3
-ollama pull llama3
-```
-
-### 4. Run the backend
-
-```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-API: `http://localhost:8000`. Docs: `http://localhost:8000/docs`.
-
----
-
-## Frontend setup
-
-### 1. Install dependencies
-
-```bash
-cd frontend
+cd frontend2
 npm install
-```
-
-### 2. Environment
-
-```bash
-cp .env.local.example .env.local
-```
-
-Set:
-
-- `NEXT_PUBLIC_API_LOCAL=http://localhost:8000`
-- `NEXT_PUBLIC_API_TUNNEL=https://your-ngrok-url.ngrok.io` (optional)
-- `NEXT_PUBLIC_API_CLOUD=https://your-railway-url.up.railway.app` (optional, for Cloud Mode)
-
-### 3. Run the frontend
-
-```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-If the dev server starts then exits immediately (common on Windows):
-- Run `npm install` to ensure `cross-env` and deps are installed, then try `npm run dev` again.
-- If it still exits, run `npm i --force` (fixes SWC install issues on Windows) or run `npm run dev` from an **external** PowerShell/CMD window.
-
 ---
 
-## Local hosting with Ngrok
-
-To expose your local backend to the internet (e.g. for demos or mobile):
-
-1. Install [Ngrok](https://ngrok.com).
-2. Authenticate: `ngrok config add-authtoken YOUR_TOKEN`
-3. Run the backend: `uvicorn main:app --host 0.0.0.0 --port 8000`
-4. Start a tunnel: `ngrok http 8000`
-5. Copy the HTTPS URL (e.g. `https://abc123.ngrok.io`) into `frontend/.env.local` as `NEXT_PUBLIC_API_TUNNEL`.
-
----
-
-## Cloud mode hosting
-
-- **Backend**: Deploy to Railway or Render. Set `AI_MODE=cloud` and `GROQ_API_KEY`.
-- **Frontend**: Deploy to Vercel. Set `NEXT_PUBLIC_API_CLOUD` to your deployed backend URL.
-
----
-
-## API endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/upload-manuscript` | Upload DOCX/PDF/TXT |
-| POST | `/parse` | Parse manuscript (no LLM) |
-| POST | `/analyze-structure` | Detect structure (Phi3/Llama3-70B) |
-| POST | `/extract-rules` | Extract formatting rules (Phi3) |
-| POST | `/format-document` | Apply formatting (Llama3) |
-| POST | `/validate-citations` | Citation checks (no LLM) |
-| POST | `/validate-format` | Format compliance (Llama3) |
-| GET | `/download?job_id=...` | Download formatted DOCX |
-| GET | `/job/{job_id}` | Get job status and results |
-| GET | `/health` | Health check |
-
----
-
-## Tech stack
-
-- **Frontend**: React, Next.js 14, TailwindCSS, Shadcn UI (Radix), Lucide React, Framer Motion, next-themes (dark/light).
-- **Backend**: Python 3.10+, FastAPI, python-docx, pdfplumber, PyMuPDF, httpx, Groq SDK.
-- **AI**: Ollama (Phi3, Llama3) for private mode; Groq (Llama3-70B) for cloud mode.
-
----
-
-## License
-
-MIT.
+## 👨‍💻 Author
+**Tirth Patel** ([GitHub Profile](https://github.com/tirth1356))

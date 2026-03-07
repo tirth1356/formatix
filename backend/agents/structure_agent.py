@@ -32,6 +32,11 @@ Return a SINGLE JSON object with EXACTLY these keys (use empty strings or empty 
 
 - "title": string — the manuscript title (not the journal name)
 - "authors": array of strings — author full names only, no affiliations or emails
+- "affiliation": string — the institution/affiliation associated with the authors
+- "course_info": object with keys:
+    - "course": string (e.g., "English 101")
+    - "instructor": string (e.g., "Dr. Smith")
+    - "date": string (e.g., "7 March 2026")
 - "abstract": string — full abstract text
 - "keywords": array of strings — keywords if listed
 - "problem_statement": string — 1–2 sentence problem statement extracted from Introduction
@@ -207,6 +212,8 @@ class StructureAgent:
         defaults = {
             "title":            "",
             "authors":          [],
+            "affiliation":      "",
+            "course_info":      {"course": "", "instructor": "", "date": ""},
             "abstract":         "",
             "keywords":         [],
             "problem_statement": "",
@@ -270,21 +277,104 @@ class StructureAgent:
     # ------------------------------------------------------------------ #
 
     def _detect_sections_regex(self, text: str) -> list:
+        """Detect sections from raw text using multiple strategies."""
         if not text:
             return []
+        
         sections = []
-        matches  = list(_SECTION_PATTERN.finditer(text))
-        for i, match in enumerate(matches):
-            heading = match.group(0).strip()
-            start   = match.end()
-            end     = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-            content = text[start:end].strip()
-            sections.append({
-                "heading":    heading,
-                "level":      self._guess_heading_level(heading),
-                "content":    content,
-                "word_count": len(content.split()),
-            })
+        
+        # Strategy 1: Standard pattern matching (Roman/Arabic numerals)
+        matches = list(_SECTION_PATTERN.finditer(text))
+        if matches:
+            for i, match in enumerate(matches):
+                heading = match.group(0).strip()
+                start = match.end()
+                end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+                content = text[start:end].strip()
+                if content:
+                    sections.append({
+                        "heading": heading,
+                        "level": self._guess_heading_level(heading),
+                        "content": content,
+                        "word_count": len(content.split()),
+                    })
+        
+        # Strategy 2: If no sections found by pattern, try smart splitting
+        if not sections:
+            sections = self._detect_sections_by_heuristics(text)
+        
+        return sections
+
+    def _detect_sections_by_heuristics(self, text: str) -> list:
+        """
+        Detect sections from unstructured text using heuristics:
+        - All-caps lines that look like headings
+        - Lines starting with numbers/roman numerals
+        - Academic section keywords (Introduction, Methods, etc.)
+        """
+        lines = text.split('\n')
+        sections = []
+        current_heading = ""
+        current_content = []
+        
+        academic_keywords = {
+            'abstract', 'introduction', 'background', 'related', 'methodology', 'method',
+            'results', 'discussion', 'conclusion', 'future', 'references', 'acknowledgment',
+            'application', 'ethical', 'evaluation', 'implementation', 'framework',
+        }
+        
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            
+            # Check if this line looks like a section heading
+            is_potential_heading = False
+            
+            # All caps and contains academic keyword
+            if stripped.isupper() and any(kw in stripped.lower() for kw in academic_keywords):
+                is_potential_heading = True
+            
+            # Starts with roman/arabic numeral pattern
+            if re.match(r'^[IVX\d]+[\.\:]\s+', stripped, re.IGNORECASE):
+                is_potential_heading = True
+            
+            # Short title-case line with academic keyword
+            if (stripped.istitle() and len(stripped) < 100 and 
+                any(kw in stripped.lower() for kw in academic_keywords)):
+                is_potential_heading = True
+            
+            if is_potential_heading and current_heading:
+                # Save previous section
+                content = '\n'.join(current_content).strip()
+                if content:
+                    sections.append({
+                        "heading": current_heading,
+                        "level": 1,
+                        "content": content,
+                        "word_count": len(content.split()),
+                    })
+                current_heading = stripped
+                current_content = []
+            elif is_potential_heading and not current_heading:
+                # First heading
+                current_heading = stripped
+                current_content = []
+            elif current_heading:
+                # Add to current section
+                current_content.append(stripped)
+        
+        # Save last section
+        if current_heading and current_content:
+            content = '\n'.join(current_content).strip()
+            if content:
+                sections.append({
+                    "heading": current_heading,
+                    "level": 1,
+                    "content": content,
+                    "word_count": len(content.split()),
+                })
+        
         return sections
 
     def _guess_heading_level(self, heading: str) -> int:

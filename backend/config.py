@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     # ── Groq (cloud) ─────────────────────────────────────────────────────────
     groq_api_key: str = ""
     groq_model_fast: str = "llama-3.1-8b-instant"
-    groq_model_reasoning: str = "llama-3.3-70b-versatile"
+    groq_model_reasoning: str = "llama-3.1-8b-instant"
     # Legacy single-model field kept for backward compat — maps to reasoning
     groq_model: str = ""
 
@@ -113,7 +113,7 @@ class Settings(BaseSettings):
         Always keep groq_model in sync with groq_model_reasoning so old code
         that reads settings.groq_model still works.
         """
-        default_reasoning = "llama-3.3-70b-versatile"
+        default_reasoning = "llama-3.1-8b-instant"
         if self.groq_model and self.groq_model_reasoning == default_reasoning:
             object.__setattr__(self, "groq_model_reasoning", self.groq_model)
         # Always keep legacy field in sync

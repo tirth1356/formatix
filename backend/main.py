@@ -30,6 +30,12 @@ import uuid
 from pathlib import Path
 from typing import Optional, List
 
+try:
+    import pypandoc
+    PANDOC_AVAILABLE = True
+except ImportError:
+    PANDOC_AVAILABLE = False
+
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -43,7 +49,6 @@ from citation_styles import (
     get_formatting_rules,
     resolve_style_key,
 )
-from llm.ollama_client import OllamaClient
 from llm.groq_client import GroqClient
 from agents.parser_agent import ParserAgent
 from agents.structure_agent import StructureAgent
@@ -125,9 +130,8 @@ def _load_job_metadata(job_id: str) -> Optional[dict]:
 # LLM clients
 # ─────────────────────────────────────────────────────────────────────────────
 
-_ollama = OllamaClient(base_url=settings.ollama_base_url)
-_groq   = GroqClient(api_key=settings.groq_api_key, model=settings.groq_model_reasoning) \
-          if settings.groq_api_key else None
+_groq = GroqClient(api_key=settings.groq_api_key, model=settings.groq_model_reasoning) \
+        if settings.groq_api_key else None
 
 
 async def llm_generate(
@@ -137,16 +141,13 @@ async def llm_generate(
     system: Optional[str] = None,
 ) -> str:
     """
-    Unified LLM call.
-      mode = "cloud"  → Groq (falls back to Ollama if key missing)
-      mode = "ollama" → local Ollama
-    The model argument is respected for Ollama; Groq always uses its configured model.
+    Unified LLM call - uses cloud mode (Groq) only.
+    The mode parameter is kept for API compatibility but always uses cloud.
     """
-    if mode == "cloud" and _groq:
-        return await _groq.generate(prompt=prompt, system=system)
-    if mode == "cloud" and not _groq:
-        log.warning("Cloud mode requested but GROQ_API_KEY not set — falling back to Ollama")
-    return await _ollama.generate(model=model, prompt=prompt, system=system)
+    # Always use cloud mode - local Ollama is for display purposes only
+    if _groq:
+        return await _groq.generate(prompt=prompt, system=system, model=model)
+    raise RuntimeError("GROQ_API_KEY not set - cloud mode required")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -527,6 +528,8 @@ async def format_document(body: FormatDocumentRequest):
             references  = structure.get("references", []),
             output_path = str(out_path),
             keywords    = structure.get("keywords", []),
+            affiliation = structure.get("affiliation"),
+            course_info = structure.get("course_info"),
         )
 
         # ── Build LaTeX ───────────────────────────────────────────────────────
@@ -539,20 +542,24 @@ async def format_document(body: FormatDocumentRequest):
 
         # ── Prefer DOCX from LaTeX via pandoc (matches LaTeX output) ───────────
         docx_from_latex = out_dir / "formatted_from_latex.docx"
-        try:
-            subprocess.run(
-                ["pandoc", "-f", "latex", "-t", "docx", "-o", str(docx_from_latex), str(tex_path)],
-                check=True,
-                capture_output=True,
-                timeout=60,
-                cwd=str(out_dir),
-            )
-            if docx_from_latex.exists():
-                shutil.move(str(docx_from_latex), str(out_path))
-                job["formatted"] = {"status": "completed", "method": "pandoc-latex-to-docx"}
-                log.info("DOCX generated from LaTeX via pandoc job=%s", body.job_id)
-        except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-            log.info("Pandoc not used (not installed or failed): %s — serving python-docx output", e)
+        if PANDOC_AVAILABLE:
+            try:
+                latex_content = tex_path.read_text(encoding="utf-8")
+                docx_output = pypandoc.convert_text(
+                    latex_content,
+                    "docx",
+                    format="latex",
+                    outputfile=str(docx_from_latex),
+                )
+                if docx_from_latex.exists():
+                    shutil.move(str(docx_from_latex), str(out_path))
+                    job["formatted"] = {"status": "completed", "method": "pandoc-latex-to-docx"}
+                    log.info("DOCX generated from LaTeX via pypandoc job=%s", body.job_id)
+            except Exception as e:
+                log.info("Pandoc conversion failed: %s — serving python-docx output", e)
+                job["formatted"] = job.get("formatted") or {"status": "completed", "method": "python-docx"}
+        else:
+            log.info("Pandoc not available — serving python-docx output")
             job["formatted"] = job.get("formatted") or {"status": "completed", "method": "python-docx"}
 
         job["output_path"]     = str(out_path)

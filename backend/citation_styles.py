@@ -2,6 +2,7 @@
 Citation styles definitions and formatting utilities.
 Supports: IEEE, APA, MLA, Chicago, Vancouver
 """
+import re
 from typing import Optional
 
 def ieee_journal(data):
@@ -24,6 +25,194 @@ def ieee_journal(data):
     if data.get("index"):
         citation = f'[{data["index"]}] ' + citation
     return citation + "."
+
+def format_apa_authors(raw_authors):
+    if not raw_authors: return ""
+    if isinstance(raw_authors, str):
+        auth_list = re.split(r'\s+and\s+|,', raw_authors)
+    else:
+        auth_list = raw_authors
+    
+    formatted = []
+    auth_list = [a.strip() for a in auth_list if a.strip()]
+    
+    for a in auth_list:
+        parts = a.split()
+        if not parts: continue
+        surname = parts[-1]
+        initials = " ".join(f"{p[0]}." for p in parts[:-1])
+        formatted.append(f"{surname}, {initials}")
+    
+    if len(formatted) == 0: return ""
+    if len(formatted) == 1: return formatted[0]
+    if len(formatted) <= 20:
+        return ", ".join(formatted[:-1]) + ", & " + formatted[-1]
+    else:
+        return ", ".join(formatted[:19]) + ", ... " + formatted[-1]
+
+def apa_journal(d):
+    # APA 7: Author, A. A. (Year). Title. Journal, Vol(No), pp-pp. DOI
+    authors = format_apa_authors(d.get('authors'))
+    year = d.get('year') or ''
+    title = d.get('title') or ''
+    journal = d.get('journal') or ''
+    volume = d.get('volume') or ''
+    number = d.get('number') or ''
+    pages = d.get('pages') or ''
+    doi = d.get('doi') or d.get('url') or ''
+    
+    if doi and not str(doi).startswith('http'):
+        doi = 'https://doi.org/' + str(doi)
+        
+    cite = f"{authors} ({year}). {title}. _{journal}_"
+    if volume:
+        cite += f", _{volume}_"
+        if number:
+            cite += f"({number})"
+    if pages:
+        cite += f", {pages}."
+    else:
+        cite += "."
+        
+    if doi:
+        cite += f" {doi}"
+    
+    return cite.strip()
+
+def mla_journal(d):
+    # MLA 9: Surname, First Mid, and First Mid Surname. "Title." Journal, vol. X, no. X, Year, pp. X-X.
+    raw_authors = d.get('authors', '')
+    if isinstance(raw_authors, str):
+        auth_list = re.split(r'\s+and\s+|,', raw_authors)
+    else:
+        auth_list = raw_authors
+    
+    formatted = []
+    auth_list = [a.strip() for a in auth_list if a.strip()]
+    
+    for i, a in enumerate(auth_list):
+        if i == 0:
+            parts = a.split()
+            if parts:
+                surname = parts[-1]
+                given = " ".join(parts[:-1])
+                formatted.append(f"{surname}, {given}")
+        elif i == 1 and len(auth_list) == 2:
+            formatted.append(f"and {a}")
+        else:
+            if len(auth_list) > 2:
+                formatted = [formatted[0] + ", et al."]
+                break
+            else:
+                formatted.append(f"and {a}")
+    
+    authors_str = " ".join(formatted) if len(auth_list) <= 2 else formatted[0]
+
+    title = d.get('title') or ''
+    journal = d.get('journal') or ''
+    year = d.get('year') or ''
+    volume = d.get('volume') or ''
+    number = d.get('number') or ''
+    pages = d.get('pages') or ''
+    
+    cite = f"{authors_str}. \"{title}.\" _{journal}_"
+    if volume:
+        cite += f", vol. {volume}"
+    if number:
+        cite += f", no. {number}"
+    cite += f", {year}"
+    if pages:
+        cite += f", pp. {pages}."
+    else:
+        cite += "."
+    return cite
+
+def vancouver_journal(d):
+    # Vancouver: Surname FM, Surname FM. Title. Journal. Year;Volume(Issue):Pages.
+    def format_name(name):
+        parts = name.strip().split()
+        if not parts: return ""
+        surname = parts[-1]
+        initials = "".join(p[0].upper() for p in parts[:-1])
+        return f"{surname} {initials}"
+
+    raw_authors = d.get('authors', '')
+    if isinstance(raw_authors, str):
+        auth_list = re.split(r'\s+and\s+|,', raw_authors)
+    else:
+        auth_list = raw_authors
+    
+    formatted_authors = []
+    for a in auth_list:
+        if a.strip():
+            formatted_authors.append(format_name(a.strip()))
+    
+    authors_str = ", ".join(formatted_authors)
+    title = d.get('title') or ''
+    journal = d.get('journal') or ''
+    year = d.get('year') or ''
+    volume = d.get('volume') or ''
+    number = d.get('number') or ''
+    pages = d.get('pages') or ''
+    
+    cite = f"{authors_str}. {title}. {journal}. {year}"
+    if volume:
+        cite += f";{volume}"
+        if number:
+            cite += f"({number})"
+    if pages:
+        cite += f":{pages}."
+    else:
+        cite += "."
+    return cite
+
+def chicago_journal(d):
+    # Chicago Author-Date: Smith, John A., and Robert T. Lee. 2022. "Title." _Journal_ Volume (Issue): Pages.
+    raw_authors = d.get('authors', '')
+    if isinstance(raw_authors, str):
+        auth_list = re.split(r'\s+and\s+|,', raw_authors)
+    else:
+        auth_list = raw_authors
+    
+    formatted_authors = []
+    auth_list = [a.strip() for a in auth_list if a.strip()]
+    
+    for i, a in enumerate(auth_list):
+        parts = a.split()
+        if not parts: continue
+        if i == 0:
+            # First author: Last, First Mid
+            surname = parts[-1]
+            given = " ".join(parts[:-1])
+            formatted_authors.append(f"{surname}, {given}")
+        else:
+            # Other authors: First Mid Last
+            formatted_authors.append(a)
+    
+    if len(formatted_authors) > 1:
+        if len(formatted_authors) == 2:
+            authors_str = f"{formatted_authors[0]}, and {formatted_authors[1]}"
+        else:
+            authors_str = ", ".join(formatted_authors[:-1]) + ", and " + formatted_authors[-1]
+    else:
+        authors_str = formatted_authors[0] if formatted_authors else ""
+
+    year = d.get('year') or ''
+    title = d.get('title') or ''
+    journal = d.get('journal') or ''
+    volume = d.get('volume') or ''
+    number = d.get('number') or ''
+    pages = d.get('pages') or ''
+    
+    cite = f"{authors_str}. {year}. \"{title}.\" _{journal}_ {volume}"
+    if number:
+        cite += f" ({number})"
+    if pages:
+        cite += f": {pages}."
+    else:
+        cite += "."
+    return cite
+
 
 CITATION_STYLES = {
 
@@ -62,7 +251,7 @@ CITATION_STYLES = {
         "layout": "single-column",
         "citation_type": "author-date",
 
-        "journal":    "{authors} ({year}). {title}. {journal}, {volume}({number}), {pages}.",
+        "journal":    apa_journal,
         "conference": "{authors} ({year}). {title}. In {conference} (pp. {pages}).",
         "book":       "{authors} ({year}). {book_title}. {publisher}.",
         "website":    "{author} ({year}). {title}. {website}. {url}",
@@ -82,7 +271,7 @@ CITATION_STYLES = {
             "abstract_indent":  False,
             "section_style":    "TITLE_CASE",     # e.g. Introduction
             "title_page":       True,
-            "running_head":     True,
+            "running_head":     False,
         },
     },
 
@@ -92,7 +281,7 @@ CITATION_STYLES = {
         "layout": "single-column",
         "citation_type": "author-page",
 
-        "journal":    "{authors}. \"{title}.\" {journal}, vol. {volume}, no. {number}, {year}, pp. {pages}.",
+        "journal":    mla_journal,
         "conference": "{authors}. \"{title}.\" {conference}, {year}, pp. {pages}.",
         "book":       "{authors}. {book_title}. {publisher}, {year}.",
         "website":    "{author}. \"{title}.\" {website}, {date}, {url}.",
@@ -112,6 +301,7 @@ CITATION_STYLES = {
             "indent_first_line_cm": 1.27,
             "works_cited_page": True,
             "section_style":    "TITLE_CASE",
+            "title_page":       False,
         },
     },
 
@@ -121,10 +311,10 @@ CITATION_STYLES = {
         "layout": "single-column",
         "citation_type": "author-date",
 
-        "journal":    "{authors}. \"{title}.\" {journal} {volume}, no. {number} ({year}): {pages}.",
-        "conference": "{authors}. \"{title}.\" In {conference}, {pages}. {year}.",
-        "book":       "{authors}. {book_title}. {city}: {publisher}, {year}.",
-        "website":    "{author}. \"{title}.\" {website}. Accessed {date}. {url}.",
+        "journal":    chicago_journal,
+        "conference": "{authors}. {year}. \"{title}.\" In {conference}, {pages}.",
+        "book":       "{authors}. {year}. {book_title}. {city}: {publisher}.",
+        "website":    "{authors}. {year}. \"{title}.\" {website}. Access {date}. {url}.",
 
         "in_text": "({author_last} {year})",
 
@@ -150,12 +340,12 @@ CITATION_STYLES = {
         "layout": "single-column",
         "citation_type": "numbered",
 
-        "journal":    "{index}. {authors}. {title}. {journal}. {year};{volume}({number}):{pages}.",
+        "journal":    vancouver_journal,
         "conference": "{index}. {authors}. {title}. In: {conference}; {year}. p. {pages}.",
         "book":       "{index}. {authors}. {book_title}. {city}: {publisher}; {year}.",
         "website":    "{index}. {author}. {title}. {website} [Internet]. {year} [cited {date}]. Available from: {url}",
 
-        "in_text": "[{index}]",
+        "in_text": "({index})",
 
         "formatting": {
             "font_family":      "Arial",
@@ -178,7 +368,6 @@ STYLE_TITLE_MAP = {
     "IEEE Standard":          "ieee",
     "MLA 9th Edition":        "mla",
     "Chicago Manual of Style": "chicago",
-    "Nature Journal":         "vancouver",   # closest numbered/medical style
     "Vancouver":              "vancouver",
     "Custom Template":        "apa",         # default to APA for custom
 }

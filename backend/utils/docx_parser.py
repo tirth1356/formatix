@@ -17,6 +17,43 @@ _HEADING_PATTERN = re.compile(
     re.IGNORECASE | re.UNICODE
 )
 
+# Common academic section keywords
+_ACADEMIC_SECTIONS = {
+    'abstract', 'introduction', 'background', 'related work', 'literature', 'review',
+    'methodology', 'method', 'approach', 'system', 'design', 'implementation',
+    'results', 'findings', 'evaluation', 'experiments', 'performance',
+    'discussion', 'analysis', 'conclusion', 'conclusions', 'future work',
+    'acknowledgment', 'acknowledgments', 'references', 'bibliography', 'appendix',
+    'applications', 'ethical', 'considerations', 'limitations', 'contributions',
+}
+
+def _is_orphan_heading(text: str) -> tuple:
+    """
+    Detect plain text that looks like an orphan heading
+    (styled as body text but resembles a section heading).
+    
+    Returns (is_orphan_heading, cleaned_text)
+    """
+    if not text or len(text) > 200:
+        return False, ""
+    
+    # All caps, short, and under 100 chars → likely a heading
+    if text.isupper() and len(text) < 100:
+        # Check if it contains section keywords
+        text_lower = text.lower()
+        if any(keyword in text_lower for keyword in _ACADEMIC_SECTIONS):
+            return True, text
+    
+    # Title case, contains academic keywords, short
+    if text.istitle() and len(text) < 100:
+        text_lower = text.lower()
+        if any(keyword in text_lower for keyword in _ACADEMIC_SECTIONS):
+            # Make sure it's not just one sentencelike (ends with period)
+            if not text.endswith('.'):
+                return True, text
+    
+    return False, ""
+
 def _is_heading_like(text: str, para: Paragraph = None) -> tuple:
     """
     Detect if text is heading-like.
@@ -47,8 +84,8 @@ def parse_docx(file_path: str) -> dict:
     Extract raw text and structural information from a DOCX file.
     Returns dict with type, text, pages (estimated), raw_sections.
     
-    Detects both formal Heading styles and heading-like text patterns
-    (e.g., "I. INTRODUCTION", bold uppercase text, etc.)
+    Detects both formal Heading styles, heading-like text patterns,
+    and orphan headings (unmarked section boundaries that look like headings).
     """
     path = Path(file_path)
     if not path.exists():
@@ -62,6 +99,7 @@ def parse_docx(file_path: str) -> dict:
     for para in doc.paragraphs:
         text = para.text.strip()
         if not text:
+            # Empty paragraph - might be a section separator
             if current_section.get("content"):
                 raw_sections.append(current_section)
                 current_section = {"heading": "", "level": 0, "content": ""}
@@ -84,6 +122,13 @@ def parse_docx(file_path: str) -> dict:
                 is_formal_heading = True
                 text = heading_text  # Use cleaned heading text
                 level = pattern_level
+            else:
+                # Check for "orphan heading" - looks like a section heading but isn't styled
+                is_orphan_heading, orphan_text = _is_orphan_heading(text)
+                if is_orphan_heading:
+                    is_formal_heading = True
+                    text = orphan_text
+                    level = 1
         
         if is_formal_heading:
             # Save previous section and start new one
