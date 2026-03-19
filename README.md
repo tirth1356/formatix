@@ -1,3 +1,5 @@
+View demo at : https://youtu.be/Fhkp9LdXewY
+
 # FormatIX
 
 **FormatIX** is a production-grade, privacy-first agentic AI system that automatically converts research papers into correct journal formatting. Researchers upload a manuscript (DOCX, PDF, or TXT); the system parses it, detects structure, extracts formatting rules, applies journal formatting, validates citations, and generates a formatted DOCX. All formatting decisions are explainable.
